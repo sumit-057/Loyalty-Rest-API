@@ -12,10 +12,6 @@
   - [Prerequisites](#prerequisites)  
   - [Installation](#installation)  
 - [API Endpoints](#api-endpoints)  
-- [Project Structure](#project-structure)  
-- [Running Tests](#running-tests)  
-- [Contributing](#contributing)  
-- [License](#license)  
 ---
 
 ## About
@@ -54,4 +50,25 @@ cd Loyalty-Rest-API
 python -m venv venv
 venv\Scripts\Activate.ps1        # on Windows PowerShell
 pip install -r requirements.txt
+```
+### Initialize Database
+```bash
+flask db init
+flask db migrate -m "initial migration"
+flask db upgrade
+```
+### Run the Server
+```bash
+python run.py
+```
+
+### API Endpoints
+| # | Endpoint                   | Method | Description                                     |
+| - | -------------------------- | ------ | ----------------------------------------------- |
+| 1 | `/api/member/register`     | POST   | Register member via mobile; returns `member_id` |
+| 2 | `/api/member/verify`       | POST   | Verify OTP; returns `access_token`              |
+| 3 | `/api/points/add`          | POST   | Add points based on rupees                      |
+| 4 | `/api/points/<member_id>`  | GET    | View current points                             |
+| 5 | `/api/coupons/redeem`      | POST   | Redeem points for coupon                        |
+| 6 | `/api/coupons/<member_id>` | GET    | View member’s coupons                           |
 
