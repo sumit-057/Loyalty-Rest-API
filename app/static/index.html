@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards API Frontend</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Rewards Management</h1>
+        <div id="messages"></div>
+
+        <div class="section">
+            <h2>1. Register Member</h2>
+            <form id="registerForm">
+                <input type="tel" id="register-mobile" placeholder="Mobile Number" required>
+                <input type="text" id="register-name" placeholder="Name">
+                <button type="submit">Register</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>2. Verify OTP</h2>
+            <form id="verifyForm">
+                <input type="tel" id="verify-mobile" placeholder="Mobile Number" required>
+                <input type="text" id="verify-otp" placeholder="OTP" required>
+                <button type="submit">Verify</button>
+            </form>
+            <p>Your Access Token: <span id="accessToken">Not yet verified</span></p>
+        </div>
+
+        <div class="section">
+            <h2>3. Add Points</h2>
+            <form id="addPointsForm">
+                <input type="number" id="points-member-id" placeholder="Member ID" required>
+                <input type="number" id="points-rupees" placeholder="Rupees (e.g., 500)" required>
+                <button type="submit">Add Points</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>4. Redeem Coupon</h2>
+            <form id="redeemCouponForm">
+                <input type="number" id="redeem-member-id" placeholder="Member ID" required>
+                <input type="number" id="redeem-points" placeholder="Points (500 or 1000)" required>
+                <button type="submit">Redeem</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>5. View Data</h2>
+            <div class="form-row">
+                <form id="viewPointsForm">
+                    <input type="number" id="view-points-id" placeholder="Member ID" required>
+                    <button type="submit">View Points</button>
+                </form>
+                <form id="viewCouponsForm">
+                    <input type="number" id="view-coupons-id" placeholder="Member ID" required>
+                    <button type="submit">View Coupons</button>
+                </form>
+            </div>
+            
+        </div>
+        
+        <div id="results"></div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
