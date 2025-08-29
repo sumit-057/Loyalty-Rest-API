@@ -18,7 +18,10 @@
 Loyalty Rewards API helps businesses manage rewards systems: members register via mobile + OTP, earn points on purchases, and redeem coupons when they accumulate enough points.
 
 ---
+## PostMan URL
+https://sumitsolanki-3191248.postman.co/workspace/Sumit-Solanki's-Workspace~b7a50add-c90c-4483-867e-1e15b5e0db3d/collection/47928026-8235728f-8a48-49b5-8382-109d1cd1c95f?action=share&creator=47928026
 
+---
 ## Features
 - Member registration with mobile number and dummy OTP verification  
 - JWT-based authentication  
