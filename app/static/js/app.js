@@ -1,113 +1,145 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const API_BASE_URL = "http://127.0.0.1:5000/api";
-    let accessToken = localStorage.getItem("access_token");
+document.addEventListener('DOMContentLoaded', () => {
+    // API base URL
+    const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
-    const messagesEl = document.getElementById("messages");
-    const accessTokenEl = document.getElementById("accessToken");
+    // Get HTML elements
+    const registerForm = document.getElementById('register-form');
+    const verifyForm = document.getElementById('verify-form');
+    const addPointsForm = document.getElementById('add-points-form');
+    const redeemCouponForm = document.getElementById('redeem-coupon-form');
+    
+    const registerSection = document.getElementById('register-section');
+    const verifySection = document.getElementById('verify-section');
+    const actionsSection = document.getElementById('actions-section');
 
-    if (accessToken) {
-        accessTokenEl.textContent = accessToken;
-        showMessage("Access token found in local storage.", "info");
-    }
+    let memberId = null;
+    let accessToken = null;
 
-    function showMessage(msg, type = "success") {
-        messagesEl.textContent = msg;
-        messagesEl.style.backgroundColor = type === "success" ? "#d4edda" : "#f8d7da";
-        messagesEl.style.color = type === "success" ? "#155724" : "#721c24";
-        messagesEl.style.display = "block";
-        setTimeout(() => (messagesEl.style.display = "none"), 5000);
-    }
-
-    async function fetchData(endpoint, method = "GET", data = null, needsAuth = true) {
-        const headers = { "Content-Type": "application/json" };
-        if (needsAuth && accessToken) {
-            headers["Authorization"] = `Bearer ${accessToken}`;
-        } else if (needsAuth && !accessToken) {
-            showMessage("Please verify and get an access token first.", "error");
-            return null;
-        }
-
-        const options = {
-            method: method,
-            headers: headers,
-            body: data ? JSON.stringify(data) : null,
-        };
+    // Handle Registration Form Submission
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value;
+        const mobile = document.getElementById('reg-mobile').value;
 
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-            const result = await response.json();
-            if (!response.ok) {
-                showMessage(`Error: ${result.msg || response.statusText}`, "error");
-                return null;
+            const response = await fetch(`${API_BASE_URL}/member/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, mobile })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Registration successful! Member ID: ${data.member_id}. Now please verify with the OTP.`);
+                // Show verification section
+                registerSection.classList.add('hidden');
+                verifySection.classList.remove('hidden');
+                document.getElementById('ver-mobile').value = mobile;
+            } else {
+                alert(`Error: ${data.msg}`);
             }
-            return result;
         } catch (error) {
-            console.error("Fetch Error:", error);
-            showMessage("Network or server error.", "error");
-            return null;
-        }
-    }
-
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const mobile = document.getElementById("register-mobile").value;
-        const name = document.getElementById("register-name").value;
-        const result = await fetchData("/member/register", "POST", { mobile, name }, false);
-        if (result) {
-            showMessage(result.msg, "success");
+            console.error('Registration failed:', error);
+            alert('Failed to connect to the server.');
         }
     });
 
-    document.getElementById("verifyForm").addEventListener("submit", async (e) => {
+    // Handle Verification Form Submission
+    verifyForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const mobile = document.getElementById("verify-mobile").value;
-        const otp = document.getElementById("verify-otp").value;
-        const result = await fetchData("/member/verify", "POST", { mobile, otp }, false);
-        if (result) {
-            accessToken = result.access_token;
-            localStorage.setItem("access_token", accessToken);
-            accessTokenEl.textContent = accessToken;
-            showMessage(result.msg, "success");
+        const mobile = document.getElementById('ver-mobile').value;
+        const otp = document.getElementById('ver-otp').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/member/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobile, otp })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Verification successful! Your Member ID is: ${data.member_id}`);
+                // Store member ID and JWT token for future requests
+                memberId = data.member_id;
+                accessToken = data.access_token;
+                
+                // Update UI and show action sections
+                document.getElementById('member-id').textContent = memberId;
+                document.getElementById('user-name').textContent = 'User'; // You might fetch this from the API later
+                verifySection.classList.add('hidden');
+                actionsSection.classList.remove('hidden');
+            } else {
+                alert(`Error: ${data.msg}`);
+            }
+        } catch (error) {
+            console.error('Verification failed:', error);
+            alert('Failed to connect to the server.');
         }
     });
 
-    document.getElementById("addPointsForm").addEventListener("submit", async (e) => {
+    // Handle Add Points Form Submission
+    addPointsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const member_id = parseInt(document.getElementById("points-member-id").value);
-        const rupees = parseInt(document.getElementById("points-rupees").value);
-        const result = await fetchData("/points/add", "POST", { member_id, rupees });
-        if (result) {
-            document.getElementById("results").textContent = JSON.stringify(result, null, 2);
-            showMessage("Points added successfully.", "success");
+        const rupees = parseInt(document.getElementById('points-rupees').value, 10);
+
+        if (!memberId || !accessToken) {
+            alert('Please register and verify first.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/points/add`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ member_id: memberId, rupees })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Points added successfully! You earned ${data.points_added} points. Total points: ${data.total_points}`);
+                document.getElementById('points-rupees').value = ''; // Clear input
+            } else {
+                alert(`Error: ${data.msg}`);
+            }
+        } catch (error) {
+            console.error('Adding points failed:', error);
+            alert('Failed to add points. Check server connection.');
         }
     });
 
-    document.getElementById("redeemCouponForm").addEventListener("submit", async (e) => {
+    // Handle Redeem Coupon Form Submission
+    redeemCouponForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const member_id = parseInt(document.getElementById("redeem-member-id").value);
-        const points = parseInt(document.getElementById("redeem-points").value);
-        const result = await fetchData("/coupons/redeem", "POST", { member_id, points });
-        if (result) {
-            document.getElementById("results").textContent = JSON.stringify(result, null, 2);
-            showMessage("Coupon redeemed successfully.", "success");
-        }
-    });
+        const points = parseInt(document.getElementById('redeem-points').value, 10);
 
-    document.getElementById("viewPointsForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const member_id = document.getElementById("view-points-id").value;
-        const result = await fetchData(`/points/${member_id}`);
-        if (result) {
-            document.getElementById("results").textContent = JSON.stringify(result, null, 2);
+        if (!memberId || !accessToken) {
+            alert('Please register and verify first.');
+            return;
         }
-    });
 
-    document.getElementById("viewCouponsForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const member_id = document.getElementById("view-coupons-id").value;
-        const result = await fetchData(`/coupons/${member_id}`);
-        if (result) {
-            document.getElementById("results").textContent = JSON.stringify(result, null, 2);
+        try {
+            const response = await fetch(`${API_BASE_URL}/coupons/redeem`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ member_id: memberId, points })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Coupon redeemed! Your new coupon code is: ${data.coupon_code}. It's worth ₹${data.value}. You now have ${data.current_points} points.`);
+            } else {
+                alert(`Error: ${data.msg}`);
+            }
+        } catch (error) {
+            console.error('Redeeming coupon failed:', error);
+            alert('Failed to redeem coupon. Check server connection.');
         }
     });
 });
